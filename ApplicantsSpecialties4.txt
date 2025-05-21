@@ -1,0 +1,107 @@
+1) Назовите форму ApplicantsSpecialties
+
+2) Добавление элементов на форму:
+
+	2.1. ComboBox (comboBoxSpecialties)
+
+	Свойство DropDownStyle → DropDownList
+
+	2.2. DataGridView name (dataGridViewApplicants)
+
+	Свойство ReadOnly = true, AllowUserToAddRows = false, AllowUserToDeleteRows = false
+
+3)двойной щелчок по форме, появиться ApplicantsSpecialties_Load
+4) выбираем ComboBox и в свойствах нажимаем на молнию, там ищем SelectedIndexChanged  и двойной щелчок
+
+5) итоговый код формы:
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Try7
+{
+    public partial class ApplicantsSpecialties: Form
+    {
+        public ApplicantsSpecialties()
+        {
+            InitializeComponent();
+        }
+
+        private void специальностиBindingNavigatorSaveItem_Click(object sender, EventArgs e)
+        {
+            this.Validate();
+            this.специальностиBindingSource.EndEdit();
+            this.tableAdapterManager.UpdateAll(this.приемнаяКомиссияDataSet);
+
+        }
+
+        private void ApplicantsSpecialties_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void comboBoxSpecialties_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBoxSpecialties.SelectedValue == null || comboBoxSpecialties.SelectedValue is DataRowView)
+                return;
+
+            int selectedCode = Convert.ToInt32(comboBoxSpecialties.SelectedValue);
+
+            using (SqlConnection conn = new SqlConnection(new DB().stringCon()))
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand(
+                    "SELECT Фамилия, Имя, Отчество, СреднийБалл " +
+                    "FROM Абитуриенты " +
+                    "WHERE КодСпециальности = @Code AND IsDeleted = 0", conn);
+                cmd.Parameters.AddWithValue("@Code", selectedCode);
+
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                DataTable dt = new DataTable();
+                adapter.Fill(dt);
+
+                dataGridViewApplicants.DataSource = dt;
+            }
+
+        }
+
+        private void LoadSpecialties()
+        {
+            var db = new DB();
+            using (SqlConnection conn = new SqlConnection(db.stringCon()))
+            {
+                conn.Open();
+                string query = "SELECT КодСпециальности, Название FROM Специальности";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    DataTable table = new DataTable();
+                    adapter.Fill(table);
+
+                    comboBoxSpecialties.DataSource = table;
+                    comboBoxSpecialties.DisplayMember = "Название";
+                    comboBoxSpecialties.ValueMember = "КодСпециальности";
+                }
+            }
+        }
+
+
+        private void ApplicantsSpecialties_Load_1(object sender, EventArgs e)
+        {
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "приемнаяКомиссияDataSet.Абитуриенты". При необходимости она может быть перемещена или удалена.
+            this.абитуриентыTableAdapter.Fill(this.приемнаяКомиссияDataSet.Абитуриенты);
+            LoadSpecialties();
+        }
+    }
+}
+
+
+6) не забыть про кнопку назад

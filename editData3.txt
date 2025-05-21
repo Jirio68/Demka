@@ -1,0 +1,74 @@
+1) назвать форму editData
+
+2) Разместите элементы управления на форме
+Элемент	            Назначение	                      Свойства
+DataGridView      dgvApplicants	           Name = dgvApplicants, ReadOnly = true, SelectionMode = FullRowSelect, AutoSizeColumnsMode = Fill
+ComboBox          cmbSpecialties	       Name = cmbSpecialties, DropDownStyle = DropDownList
+Button               btnAdd	                      Text = "Добавить"
+Button               btnEdit	                  Text = "Изменить"
+Button              btnDelete	                  Text = "Удалить"
+
+3) источник ресурсов DataGridView - абитуриенты
+4) Источник данных -> Абитуриенты > сведения
+
+5) добавляем переменные public int click = 0; public int editClick = 0;в начале:
+
+namespace Try7
+{
+    public partial class editData: Form
+    {
+        public int click = 0;
+        public int editClick = 0;
+		
+6) кнопка Добавить:
+
+if (click == 0)
+{
+    абитуриентыBindingSource.AddNew();
+    click += 1;
+}
+else
+{
+    абитуриентыBindingSource.EndEdit();
+    абитуриентыTableAdapter.Update(приемнаяКомиссияDataSet);
+    click = 0;
+}
+
+7) кнопка удалить:
+
+if (абитуриентыBindingSource.Current != null)
+{
+    
+    DataRowView currentRow = (DataRowView)абитуриентыBindingSource.Current;
+
+   
+    currentRow["IsDeleted"] = true;
+
+   
+    абитуриентыBindingSource.EndEdit();
+    абитуриентыTableAdapter.Update(приемнаяКомиссияDataSet);
+}
+
+8) кнопка изменить:
+
+if (абитуриентыBindingSource.Current == null) return;
+
+if (editClick == 0)
+{
+    // Разрешить редактирование
+    dataGridViewAbit.ReadOnly = false;
+    dataGridViewAbit.CurrentCell = dataGridViewAbit.SelectedCells[0];
+    dataGridViewAbit.BeginEdit(true);
+    editClick++;
+}
+else
+{
+    // Завершаем редактирование
+    абитуриентыBindingSource.EndEdit();
+    абитуриентыTableAdapter.Update(приемнаяКомиссияDataSet);
+    dataGridViewAbit.ReadOnly = true;
+    editClick = 0;
+}
+
+9) кнопка назад:
+...

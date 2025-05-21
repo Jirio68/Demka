@@ -1,0 +1,74 @@
+1) Создайте форму NumberApplicants.cs.
+
+2) В дизайнере (NumberApplicants.Designer.cs или визуально):
+
+DataGridView
+Name: dataGridViewCount
+
+ReadOnly: True
+
+AutoSizeColumnsMode: Fill
+
+AllowUserToAddRows/DeleteRows: False
+
+ИСТОЧНИК РЕСУРСОВ ОСТАВИТЬ ПУСТЫМ
+
+3) код:
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Try7
+{
+    public partial class NumberApplicants: Form
+    {
+        public NumberApplicants()
+        {
+            InitializeComponent();
+        }
+
+        private void NumberApplicants_Load(object sender, EventArgs e)
+        {
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "приемнаяКомиссияDataSet.Специальности". При необходимости она может быть перемещена или удалена.
+            this.специальностиTableAdapter.Fill(this.приемнаяКомиссияDataSet.Специальности);
+            LoadApplicantsCount();
+        }
+
+        private void LoadApplicantsCount()
+        {
+            using (SqlConnection conn = new SqlConnection(new DB().stringCon()))
+            {
+                conn.Open();
+                string query = @"
+                    SELECT 
+                        Специальности.Название AS Специальность,
+                        COUNT(Абитуриенты.КодАбитуриента) AS КоличествоПоступающих
+                    FROM 
+                        Специальности
+                    LEFT JOIN 
+                        Абитуриенты ON Специальности.КодСпециальности = Абитуриенты.КодСпециальности
+                        AND Абитуриенты.IsDeleted = 0
+                    GROUP BY 
+                        Специальности.Название
+                    ORDER BY 
+                        КоличествоПоступающих DESC;
+                ";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                DataTable table = new DataTable();
+                adapter.Fill(table);
+
+                dataGridViewCount.DataSource = table;
+            }
+        }
+    }
+}

@@ -1,0 +1,98 @@
+1) создай класс DB, код:
+
+	public string stringCon()
+{
+    return @"Data Source=DESKTOP-KI4D9O5\JIRIO;Initial Catalog=ПриемнаяКомиссия;Integrated Security=True;";
+}
+
+2) создай класс PersonalData, код:
+
+public static int IdUser { get; private set; }
+public static string Password { get; private set; }
+public static string Login { get; private set; }
+public static string Role { get; private set; }
+
+public bool SetPersonalData(string login, string password)
+{
+    var db = new DB();
+    string sqlExpression = "Select TOP 1 * FROM Пользователи where Логин  = @login and Пароль = @Password";
+    {
+        using (SqlConnection connection = new SqlConnection(db.stringCon()))
+        {
+            connection.Open();
+            using (SqlCommand command = new SqlCommand(sqlExpression, connection))
+            {
+                command.Parameters.AddWithValue("@Login", login);
+                command.Parameters.AddWithValue("@Password", password);
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.HasRows)
+                    {
+                        reader.Read();
+                        IdUser = (int)reader["ID_Пользователя"];
+                        Login = reader["Логин"].ToString();
+                        Password = reader["Пароль"].ToString();
+                        Role = reader["Роль"].ToString();
+
+                        return true;
+
+                    }
+                }
+                return false;
+            }
+        }
+    }
+}
+
+3) Добавьте элементы управления:
+Элемент	      name(разработка)	           Свойства
+Label         lblLogin	          Текст "Логин"	Text = "Логин"
+TextBox       txtLogin	          Поле ввода логина	Name = txtLogin
+Label         lblPassword	      Текст "Пароль"	Text = "Пароль"
+TextBox       txtPassword	      Поле ввода пароля	Name = txtPassword, UseSystemPasswordChar = true
+Button        btnLogin	          Кнопка входа	Text = "Войти", Name = btnLogin
+Label         lblError	          Сообщение об ошибке	Text = "", ForeColor = Color.Red
+
+в код кнопки:
+
+private void btnLogin_Click(object sender, EventArgs e)
+{
+    string login = txtLogin.Text.Trim();
+    string password = txtPassword.Text.Trim();
+
+    if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
+    {
+        lblError.Text = "Введите логин и пароль.";
+        return;
+    }
+
+    var personal = new PersonalData();
+    bool success = personal.SetPersonalData(login, password);
+
+    if (success)
+    {
+        string role = PersonalData.Role;
+
+        if (role == "Секретарь")
+        {
+            FormSecretary formSecretary = new FormSecretary();
+            formSecretary.Show();
+            this.Hide();
+        }
+        else if (role == "Абитуриент")
+        {
+            FormApplicant formApplicant = new FormApplicant();
+            formApplicant.Show();
+            this.Hide();
+        }
+        else
+        {
+            lblError.Text = "Неизвестная роль.";
+        }
+    }
+    else
+    {
+        lblError.Text = "Неверный логин или пароль.";
+    }
+}

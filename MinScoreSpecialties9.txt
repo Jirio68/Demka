@@ -1,0 +1,45 @@
+1) Создать форму MinScoreSpecialties 
+
+2) добавляем DataGridView (dataGridViewMinScore)
+Свойства:
+ReadOnly = true, AutoSizeColumnsMode = AllCells, AutoGenerateColumns = true
+
+ИСТОЧНИК РЕСУРСОВ ОСТАВИТЬ ПУСТЫМ
+
+3) код: 
+
+private void MinScoreSpecialties_Load(object sender, EventArgs e)
+        {
+            LoadMinScores();
+        }
+
+        private void LoadMinScores()
+        {
+            using (SqlConnection conn = new SqlConnection(new DB().stringCon()))
+            {
+                conn.Open();
+
+                string query = @"
+                    SELECT 
+                        Специальности.Название AS Специальность,
+                        MIN(Абитуриенты.СреднийБалл) AS МинБалл
+                    FROM 
+                        Специальности
+                    INNER JOIN 
+                        Абитуриенты ON Специальности.КодСпециальности = Абитуриенты.КодСпециальности
+                    WHERE 
+                        Абитуриенты.IsDeleted = 0
+                    GROUP BY 
+                        Специальности.Название
+                    ORDER BY 
+                        МинБалл ASC;
+                ";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                DataTable table = new DataTable();
+                adapter.Fill(table);
+
+                dataGridViewMinScore.DataSource = table;
+            }
+        }

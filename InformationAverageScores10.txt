@@ -1,0 +1,38 @@
+1) создать форму InformationAverageScores
+
+2) Добавить: DataGridView (dataGridViewScoreInfo)	
+Свойства	ReadOnly = true AllowUserToAddRows = false AutoSizeColumnsMode = AllCells SelectionMode = FullRowSelect
+
+ИСТОЧНИК РЕСУРСОВ ОСТАВИТЬ ПУСТЫМ
+
+3) код:
+private void InformationAverageScores_Load(object sender, EventArgs e)
+        {
+            LoadScoreInfo();
+        }
+
+        private void LoadScoreInfo()
+        {
+            using (SqlConnection conn = new SqlConnection(new DB().stringCon()))
+            {
+                conn.Open();
+
+                string query = @"
+                    SELECT 
+                        MIN(СреднийБалл) AS МинБалл,
+                        AVG(СреднийБалл) AS СреднийБалл,
+                        MAX(СреднийБалл) AS МаксБалл
+                    FROM 
+                        Абитуриенты
+                    WHERE 
+                        IsDeleted = 0;
+                ";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                DataTable table = new DataTable();
+                adapter.Fill(table);
+
+                dataGridViewScoreInfo.DataSource = table;
+            }
+        }

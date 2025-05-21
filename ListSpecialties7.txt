@@ -1,0 +1,46 @@
+1) Создать форму ListSpecialties
+
+2) Добавление элементов управления
+В дизайнере формы (ListSpecialties.cs [Design]):
+
+1. DataGridView
+Name: dataGridViewSpecialties
+
+Properties:
+
+ReadOnly: True
+
+AllowUserToAddRows: False
+
+AllowUserToDeleteRows: False
+
+AutoSizeColumnsMode: Fill
+
+3) Источник ресурсов - специальности
+
+4) код:
+
+private void ListSpecialties_Load(object sender, EventArgs e)
+{
+    // TODO: данная строка кода позволяет загрузить данные в таблицу "приемнаяКомиссияDataSet.Специальности". При необходимости она может быть перемещена или удалена.
+    this.специальностиTableAdapter.Fill(this.приемнаяКомиссияDataSet.Специальности);
+    LoadSpecialties();
+
+}
+
+private void LoadSpecialties()
+{
+    using (SqlConnection conn = new SqlConnection(new DB().stringCon()))
+    {
+        conn.Open();
+        string query = "SELECT КодСпециальности, Название FROM Специальности";
+
+        SqlCommand cmd = new SqlCommand(query, conn);
+        SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+
+        DataTable table = new DataTable();
+        adapter.Fill(table);
+
+        dataGridViewSpecialties.DataSource = table;
+    }
+}
